@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>AzureSignalR.AuthHelpers</id>
+    <version>$version$</version>
+    <title>AzureSignalR.AuthHelpers</title>
+    <authors>Alex Marshall</authors>
+    <owners>Alex Marshall</owners>
+    <licenseUrl>https://github.com/alexmarshall132/AzureSignalR.AuthHelpers/blob/master/LICENSE</licenseUrl>
+    <projectUrl>https://github.com/alexmarshall132/AzureSignalR.AuthHelpers/</projectUrl>
+    <iconUrl>https://github.com/alexmarshall132/AzureSignalR.AuthHelpers/</iconUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Helper library for authenticating with Azure SignalR.</description>
+    <releaseNotes>Initial release</releaseNotes>
+    <copyright>Copyright 2018</copyright>
+    <tags>Azvure SignalR Authentication Helpers</tags>
+  </metadata>
+</package>
