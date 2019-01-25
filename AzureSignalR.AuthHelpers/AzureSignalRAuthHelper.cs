@@ -23,6 +23,8 @@ namespace AzureSignalR.AuthHelpers
 
 		private readonly JwtSecurityTokenHandler tokenHandler = new JwtSecurityTokenHandler();
 
+		private readonly TimeSpan defaultTtl;
+
 		/// <summary>
 		/// Initializes a new instance of the <see cref="AzureSignalRAuthHelper"/> class.
 		/// </summary>
@@ -35,6 +37,25 @@ namespace AzureSignalR.AuthHelpers
 		/// Thrown if the Version value in the connection sting is anything but 1.0
 		/// </exception>
 		public AzureSignalRAuthHelper(string connectionString)
+			: this(connectionString, TimeSpan.FromHours(1.0))
+		{
+		}
+
+		/// <summary>
+		/// Initializes a new instance of the <see cref="AzureSignalRAuthHelper"/> class.
+		/// </summary>
+		/// <param name="connectionString">
+		/// The connection string to be used to connect to the Azure Signal R instance. Must not be null or empty.
+		/// </param>
+		/// <param name="defaultTtl">
+		/// The default time to live of generated bearer tokens.
+		/// </param>
+		/// <exception cref="ArgumentException">
+		/// Thrown if <paramref name="connectionString"/> is null or empty
+		/// OR
+		/// Thrown if the Version value in the connection sting is anything but 1.0
+		/// </exception>
+		public AzureSignalRAuthHelper(string connectionString, TimeSpan defaultTtl)
 		{
 			if (string.IsNullOrEmpty(connectionString))
 			{
@@ -43,13 +64,15 @@ namespace AzureSignalR.AuthHelpers
 
 			ParseConnectionString(connectionString, out this.endpoint, out this.accessKey, out this.version);
 
-			if (string.Equals("1.0	", this.version, StringComparison.InvariantCultureIgnoreCase) == false)
+			if (string.Equals("1.0", this.version, StringComparison.InvariantCultureIgnoreCase) == false)
 			{
 				throw new ArgumentException("'Version' must be 1.0", nameof(connectionString));
 			}
+
+			this.defaultTtl = defaultTtl;
 		}
 
-		public void GetPublishParameters(string hubName, out Uri hubUri, out string bearerToken)
+		public void GetPublishToAllParameters(string hubName, out Uri hubUri, out string bearerToken)
 		{
 			if (string.IsNullOrEmpty(hubName))
 			{
@@ -59,10 +82,10 @@ namespace AzureSignalR.AuthHelpers
 			string uri = this.GetPublishHubUrl(hubName);
 
 			hubUri = new Uri(uri);
-			bearerToken = this.GenerateJwtBearerToken(null, uri, null, DateTime.Now.Add(TimeSpan.FromHours(1.0)));
+			bearerToken = this.GenerateJwtBearerToken(null, uri, null, DateTime.Now.Add(this.defaultTtl));
 		}
 
-		public void GetSubscribeParameters(string hubName, out Uri hubUri, out string bearerToken)
+		public void GetSubscribeToAllParameters(string hubName, out Uri hubUri, out string bearerToken)
 		{
 			if (string.IsNullOrEmpty(hubName))
 			{
@@ -72,8 +95,10 @@ namespace AzureSignalR.AuthHelpers
 			string uri = this.GetSubscribeHubUrl(hubName);
 
 			hubUri = new Uri(uri);
-			bearerToken = this.GenerateJwtBearerToken(null, uri, null, DateTime.Now.Add(TimeSpan.FromHours(1.0)));
+			bearerToken = this.GenerateJwtBearerToken(null, uri, null, DateTime.Now.Add(this.defaultTtl));
 		}
+
+		#region Helper Methods
 
 		private string GetSubscribeHubUrl(string hubName)
 		{
@@ -103,8 +128,8 @@ namespace AzureSignalR.AuthHelpers
 			}
 
 			var connectionStringParams = connectionString.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries)
-														 .Select(p => p.Split(new[] { '=' }, 2))
-														 .ToDictionary(p => p[0].Trim().ToLower(), p => p[1].Trim());
+				.Select(p => p.Split(new[] { '=' }, 2))
+				.ToDictionary(p => p[0].Trim().ToLower(), p => p[1].Trim());
 
 			if (!connectionStringParams.TryGetValue("endpoint", out endpoint))
 			{
@@ -140,5 +165,7 @@ namespace AzureSignalR.AuthHelpers
 
 			return this.tokenHandler.WriteToken(token);
 		}
+
+		#endregion
 	}
 }
